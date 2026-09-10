@@ -59,7 +59,7 @@ def render_ai_advisor(current_rate: float, projected_low: float):
                 # Call Groq's lightning-fast Llama 3.3 70B model
                 chat_completion = client.chat.completions.create(
                     messages=api_messages,
-                    model="llama-3.3-70b-versatile",
+                    model="llama3-8b-8192",
                     temperature=0.2,
                 )
                 
