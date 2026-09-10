@@ -1,4 +1,5 @@
 import streamlit as st
+from scenario_engine import render_scenario_calculator
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -59,3 +60,4 @@ risk_cols[0].metric("Suez Canal Congestion", "High", "Delay: +2 days")
 risk_cols[1].metric("Typhoon Risk (South China Sea)", "Moderate", "Rerouting Advised")
 risk_cols[2].metric("Global Fuel (VLSFO) Price", "$610/mt", "-0.8%")
 risk_cols[3].metric("Port of Shanghai Wait Time", "36 Hours", "Improving")
+render_scenario_calculator(current_rate, projected_low)
