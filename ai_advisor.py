@@ -56,10 +56,10 @@ def render_ai_advisor(current_rate: float, projected_low: float):
                     {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
                 ]
                 
-                # Call Groq's lightning-fast Llama 3.3 70B model
+                # Call a verified open source model runs on groq
                 chat_completion = client.chat.completions.create(
                     messages=api_messages,
-                    model="llama3-8b-8192",
+                    model="openai/gpt-oss-20b",
                     temperature=0.2,
                 )
                 
