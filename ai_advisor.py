@@ -1,76 +1,62 @@
 import streamlit as st
+from google import genai
+from google.genai import types
 
 def render_ai_advisor(current_rate: float, projected_low: float):
-    """
-    Renders an interactive Maritime GenAI Assistant that responds to user
-    queries about current freight volatility, route risks, and procurement timing.
-    """
     st.markdown("---")
     st.subheader("🤖 OptiFreight AI Strategic Copilot")
-    st.caption("Ask natural-language queries regarding chartering decisions, route anomalies, and cost hedging.")
+    st.caption("Powered by Gemini. Ask natural-language queries regarding chartering decisions, route risks, and cost hedging.")
 
-    # Context-aware knowledge engine
-    response_bank = {
-        "delay": (
-            f"**Strategic Advisory:** Rates are trending downward from ${current_rate:.2f} to an estimated low of ${projected_low:.2f}. "
-            "Port turnaround metrics in Singapore are stabilizing, leading to an influx of open vessel capacity. Delaying contract finalization by 10–14 days will capture this margin."
-        ),
-        "risk": (
-            "**Geopolitical & Route Risk Report:** High congestion at the Suez Canal is adding an average 2-day transit buffer. "
-            "Additionally, moderate seasonal weather patterns in the South China Sea suggest rerouting Capesize vessels through the Lombok Strait if departure occurs within 48 hours."
-        ),
-        "fuel": (
-            "**Bunker Fuel Hedging Advisory:** Very Low Sulphur Fuel Oil (VLSFO) is currently trading at $610/metric ton (-0.8%). "
-            "Forward swap curves indicate slight stability. We recommend spot fuel procurement alongside dynamic routing to capture fuel-burn efficiencies."
-        ),
-        "steel": (
-            "**Steel Procurement Recommendation:** For raw coking coal and iron ore shipments, locking in forward voyage contracts at current spot rates incurs an unnecessary premium. "
-            "Wait for the projected low window before finalizing bulk fixtures."
+    # 1. Initialize Gemini Client securely using Streamlit Secrets
+    try:
+        api_key = st.secrets["GEMINI_API_KEY"]
+        client = genai.Client(api_key=api_key)
+    except KeyError:
+        st.error("API Key not found. Please add GEMINI_API_KEY to your Streamlit secrets.")
+        return
+
+    # 2. Define the System Persona and Rules
+    system_instruction = (
+        "You are the OptiFreight Maritime AI Copilot. You advise enterprise procurement officers on bulk cargo and vessel chartering. "
+        f"The current spot rate is ${current_rate:.2f}/ton. "
+        f"The projected 30-day low is ${projected_low:.2f}/ton. "
+        "Recommend waiting to charter if the projection is lower. Keep answers concise, professional, and business-focused. "
+        "You must politely refuse to answer any questions unrelated to maritime logistics, shipping, or the provided data."
+    )
+
+    # 3. Initialize the chat session in Streamlit state
+    if "chat_session" not in st.session_state:
+        # Create a stateful chat session
+        st.session_state.chat_session = client.chats.create(
+            model="gemini-2.5-flash",
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.2, # Low temperature for consistent, factual answers
+            )
         )
-    }
-
-    # Initialize chat history in session state
-    if "messages" not in st.session_state:
+        # Initialize UI message history
         st.session_state.messages = [
-            {
-                "role": "assistant",
-                "content": (
-                    f"Greetings. I am your OptiFreight Maritime Intelligence Copilot. "
-                    f"Current spot rates sit at **${current_rate:.2f}/ton**, with a projected 30-day low of **${projected_low:.2f}/ton**. "
-                    "How can I assist your chartering desk today?"
-                )
-            }
+            {"role": "assistant", "content": f"Greetings. I am your OptiFreight Copilot. Current rates sit at **${current_rate:.2f}**. How can I assist your chartering desk today?"}
         ]
 
-    # Display chat history
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # 4. Display chat history
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-    # Chat prompt input
+    # 5. Handle Live User Input
     if prompt := st.chat_input("Ask about chartering timing, Suez Canal delays, fuel hedging..."):
-        # Append and display user message
+        
+        # Display user prompt
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Generate intelligent contextual reply
-        user_query = prompt.lower()
-        if any(w in user_query for w in ["wait", "delay", "charter", "now", "buy"]):
-            reply = response_bank["delay"]
-        elif any(w in user_query for w in ["risk", "weather", "suez", "canal", "typhoon", "route"]):
-            reply = response_bank["risk"]
-        elif any(w in user_query for w in ["fuel", "oil", "vlsfo", "price", "bunker"]):
-            reply = response_bank["fuel"]
-        elif any(w in user_query for w in ["steel", "coal", "iron", "ore", "cargo"]):
-            reply = response_bank["steel"]
-        else:
-            reply = (
-                f"**Market Insight:** Our ensemble forecasting model currently weights port wait times and fuel spot fluctuations at a 0.84 correlation. "
-                f"Target charter execution around the projected **${projected_low:.2f}** benchmark to optimize procurement capital."
-            )
-
-        # Append and display assistant reply
-        st.session_state.messages.append({"role": "assistant", "content": reply})
+        # Generate and display Gemini response
         with st.chat_message("assistant"):
-            st.markdown(reply)
+            # Send message to the active chat session
+            response = st.session_state.chat_session.send_message(prompt)
+            st.markdown(response.text)
+            
+            # Save assistant response to history
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
