@@ -3,4 +3,4 @@ pandas
 numpy
 plotly
 scikit-learn
-google-genai
+groq

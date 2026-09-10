@@ -1,52 +1,48 @@
 import streamlit as st
-from google import genai
-from google.genai import types
+from groq import Groq
 
-# Cache the client so Python doesn't close the connection between chat messages
+# Cache the client so it stays open
 @st.cache_resource
-def get_gemini_client():
-    api_key = st.secrets["GEMINI_API_KEY"]
-    return genai.Client(api_key=api_key)
+def get_groq_client():
+    try:
+        api_key = st.secrets["GROQ_API_KEY"]
+        return Groq(api_key=api_key)
+    except KeyError:
+        return None
 
 def render_ai_advisor(current_rate: float, projected_low: float):
     st.markdown("---")
     st.subheader("🤖 OptiFreight AI Strategic Copilot")
-    st.caption("Powered by Gemini. Ask natural-language queries regarding chartering decisions, route risks, and cost hedging.")
+    st.caption("Powered by Llama 3 via Groq. Ask natural-language queries regarding chartering decisions or route risks.")
 
-    # 1. Initialize Gemini Client securely and keep it open
-    try:
-        client = get_gemini_client()
-    except KeyError:
-        st.error("API Key not found. Please check your Streamlit Secrets.")
+    client = get_groq_client()
+    
+    if not client:
+        st.error("GROQ_API_KEY not found in Streamlit Secrets.")
         return
 
-    # 2. Define the System Persona
-    system_instruction = (
-        "You are the OptiFreight Maritime AI Copilot. You advise enterprise procurement officers on bulk cargo and vessel chartering. "
-        f"The current spot rate is ${current_rate:.2f}/ton. "
-        f"The projected 30-day low is ${projected_low:.2f}/ton. "
-        "Recommend waiting to charter if the projection is lower. Keep answers concise, professional, and business-focused."
-    )
-
-    # 3. Initialize the chat session
-    if "chat_session" not in st.session_state:
-        st.session_state.chat_session = client.chats.create(
-            model="gemini-3.7-flash",
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.2, 
+    # Initialize chat history
+    if "messages" not in st.session_state:
+        # The system prompt ensures it stays in character but allows it to gracefully deflect off-topic stuff
+        st.session_state.system_prompt = {
+            "role": "system",
+            "content": (
+                "You are the OptiFreight Maritime AI. You advise on bulk cargo chartering. "
+                f"Current spot rate: ${current_rate:.2f}. Projected 30-day low: ${projected_low:.2f}. "
+                "Recommend waiting if the projection is lower. "
+                "If the user asks an off-topic question (like politics, weather, or jokes), politely say that you only have data regarding global maritime logistics."
             )
-        )
+        }
         st.session_state.messages = [
             {"role": "assistant", "content": f"Greetings. I am your OptiFreight Copilot. Current rates sit at **${current_rate:.2f}**. How can I assist your chartering desk today?"}
         ]
 
-    # 4. Display history
+    # Display chat history
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # 5. Handle Live User Input
+    # Handle Input
     if prompt := st.chat_input("Ask about chartering timing, Suez Canal delays, fuel hedging..."):
         
         st.session_state.messages.append({"role": "user", "content": prompt})
@@ -55,8 +51,21 @@ def render_ai_advisor(current_rate: float, projected_low: float):
 
         with st.chat_message("assistant"):
             try:
-                response = st.session_state.chat_session.send_message(prompt)
-                st.markdown(response.text)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
+                # Build the message array with the system prompt first
+                api_messages = [st.session_state.system_prompt] + [
+                    {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
+                ]
+                
+                # Call Groq's lightning-fast Llama 3.3 70B model
+                chat_completion = client.chat.completions.create(
+                    messages=api_messages,
+                    model="llama-3.3-70b-versatile",
+                    temperature=0.2,
+                )
+                
+                response_text = chat_completion.choices[0].message.content
+                st.markdown(response_text)
+                st.session_state.messages.append({"role": "assistant", "content": response_text})
+                
             except Exception as e:
-                st.error(f"Google API Error: {str(e)}")
+                st.error(f"Groq API Error: {str(e)}")
