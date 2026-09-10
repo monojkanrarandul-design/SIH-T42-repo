@@ -31,7 +31,7 @@ def render_ai_advisor(current_rate: float, projected_low: float):
     # 3. Initialize the chat session
     if "chat_session" not in st.session_state:
         st.session_state.chat_session = client.chats.create(
-            model="gemini-1.5-flash",
+            model="gemini-3.7-flash",
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
                 temperature=0.2, 
