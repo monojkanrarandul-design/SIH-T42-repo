@@ -1,6 +1,7 @@
 import streamlit as st
 from scenario_engine import render_scenario_calculator
 from ai_advisor import render_ai_advisor
+from ml_analytics import render_ml_insights
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -63,3 +64,4 @@ risk_cols[2].metric("Global Fuel (VLSFO) Price", "$610/mt", "-0.8%")
 risk_cols[3].metric("Port of Shanghai Wait Time", "36 Hours", "Improving")
 render_scenario_calculator(current_rate, projected_low)
 render_ai_advisor(current_rate,projected_low)
+render_ml_insights(dates,hist_prices,fut_dates,fore_prices)
