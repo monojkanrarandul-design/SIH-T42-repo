@@ -2,6 +2,7 @@ import streamlit as st
 from scenario_engine import render_scenario_calculator
 from ai_advisor import render_ai_advisor
 from ml_analytics import render_ml_insights
+from command_center import render_live_ticker
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -65,3 +66,6 @@ risk_cols[3].metric("Port of Shanghai Wait Time", "36 Hours", "Improving")
 render_scenario_calculator(current_rate, projected_low)
 render_ai_advisor(current_rate,projected_low)
 render_ml_insights(dates,hist_prices,fut_dates,fore_prices)
+st.title("🚢 OptiFreight - Predictive Maritime Intelligence")
+st.markdown("Optimization of Vessel Chartering & Bulk Cargo Procurement")
+render_live_ticker()
