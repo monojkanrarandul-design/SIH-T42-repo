@@ -15,8 +15,7 @@ OptiFreight is a B2B enterprise dashboard powered by Machine Learning that predi
 By shifting bulk cargo procurement from reactive guesswork to data-driven forecasting, OptiFreight helps logistics firms, ports, and steel manufacturers identify the most cost-effective days to charter ships. It integrates synthetic geopolitical risk metrics, weather alerts, and port congestion data to generate an actionable "Charter Now" or "Wait" recommendation.
 
 ## 🚀 Live Prototype
-[Insert your Streamlit Link Here, e.g., https://optifreight-prototype.streamlit.app]
-
+https://optifreight-sih26.streamlit.app/
 ## 🛠️ Tech Stack (MVP)
 * **Frontend:** Streamlit 
 * **Data Visualization:** Plotly
