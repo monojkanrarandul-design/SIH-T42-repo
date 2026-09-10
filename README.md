@@ -27,4 +27,4 @@ By shifting bulk cargo procurement from reactive guesswork to data-driven foreca
 1. **Actionable Intelligence:** Alerts procurement officers on when to buy vs. wait.
 2. **Freight Rate Forecast:** 30-day projection of shipping indices.
 3. **Risk Metrics Tracking:** Real-time visibility into canal congestion, weather risks, and fuel prices.
-4.
+
