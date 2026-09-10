@@ -2,15 +2,20 @@ import streamlit as st
 from google import genai
 from google.genai import types
 
+# Cache the client so Python doesn't close the connection between chat messages
+@st.cache_resource
+def get_gemini_client():
+    api_key = st.secrets["GEMINI_API_KEY"]
+    return genai.Client(api_key=api_key)
+
 def render_ai_advisor(current_rate: float, projected_low: float):
     st.markdown("---")
     st.subheader("🤖 OptiFreight AI Strategic Copilot")
     st.caption("Powered by Gemini. Ask natural-language queries regarding chartering decisions, route risks, and cost hedging.")
 
-    # 1. Initialize Gemini Client
+    # 1. Initialize Gemini Client securely and keep it open
     try:
-        api_key = st.secrets["GEMINI_API_KEY"]
-        client = genai.Client(api_key=api_key)
+        client = get_gemini_client()
     except KeyError:
         st.error("API Key not found. Please check your Streamlit Secrets.")
         return
@@ -25,7 +30,6 @@ def render_ai_advisor(current_rate: float, projected_low: float):
 
     # 3. Initialize the chat session
     if "chat_session" not in st.session_state:
-        # Switched to the universally available 1.5-flash model
         st.session_state.chat_session = client.chats.create(
             model="gemini-1.5-flash",
             config=types.GenerateContentConfig(
@@ -42,7 +46,7 @@ def render_ai_advisor(current_rate: float, projected_low: float):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # 5. Handle Live User Input with Error Catching
+    # 5. Handle Live User Input
     if prompt := st.chat_input("Ask about chartering timing, Suez Canal delays, fuel hedging..."):
         
         st.session_state.messages.append({"role": "user", "content": prompt})
@@ -51,11 +55,8 @@ def render_ai_advisor(current_rate: float, projected_low: float):
 
         with st.chat_message("assistant"):
             try:
-                # Attempt to get the AI response
                 response = st.session_state.chat_session.send_message(prompt)
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
             except Exception as e:
-                # If it fails, print the exact error safely without crashing
                 st.error(f"Google API Error: {str(e)}")
-                st.info("Double-check that your API key in Streamlit Secrets has no extra spaces and is wrapped in quotes like this: `GEMINI_API_KEY = \"AIza...\"`")
