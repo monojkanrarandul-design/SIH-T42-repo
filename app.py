@@ -6,6 +6,7 @@ from command_center import render_live_ticker
 from global_routing import render_3d_map
 from report_genrerator import render_pdf_report
 from agentic_drafter import render_agentic_drafter
+from route_analyzer import render_route_risk_analyzer
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -75,3 +76,4 @@ render_live_ticker()
 render_3d_map()
 render_pdf_report(current_rate,projected_low)
 render_agentic_drafter(projected_low,75000)
+render_route_risk_analyzer()
