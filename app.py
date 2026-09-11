@@ -3,6 +3,7 @@ from scenario_engine import render_scenario_calculator
 from ai_advisor import render_ai_advisor
 from ml_analytics import render_ml_insights
 from command_center import render_live_ticker
+from global_routing import render_3d_map
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -69,3 +70,4 @@ render_ml_insights(dates,hist_prices,fut_dates,fore_prices)
 st.title("🚢 OptiFreight - Predictive Maritime Intelligence")
 st.markdown("Optimization of Vessel Chartering & Bulk Cargo Procurement")
 render_live_ticker()
+render_3d_map()
