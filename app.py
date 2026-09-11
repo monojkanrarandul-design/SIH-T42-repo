@@ -5,6 +5,7 @@ from ml_analytics import render_ml_insights
 from command_center import render_live_ticker
 from global_routing import render_3d_map
 from report_genrerator import render_pdf_report
+from agentic_drafter import render_agentic_drafter
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -73,3 +74,4 @@ st.markdown("Optimization of Vessel Chartering & Bulk Cargo Procurement")
 render_live_ticker()
 render_3d_map()
 render_pdf_report(current_rate,projected_low)
+render_agentic_drafter(projected_low,75000)
